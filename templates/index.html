@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trending Topics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #topics {
+            margin-top: 20px;
+        }
+        .topic {
+            background-color: #f1f1f1;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Trending Topics</h1>
+    <button id="getTopicsBtn">Get Trending Topics</button>
+    <div id="topics"></div>
+
+    <script>
+        document.getElementById('getTopicsBtn').addEventListener('click', function() {
+            fetch('/get_trending')
+                .then(response => response.json())
+                .then(data => {
+                    const topicsDiv = document.getElementById('topics');
+                    topicsDiv.innerHTML = '';
+                    if (data.topics && data.topics.length > 0) {
+                        data.topics.forEach(topic => {
+                            const div = document.createElement('div');
+                            div.className = 'topic';
+                            div.textContent = topic;
+                            topicsDiv.appendChild(div);
+                        });
+                    } else if (data.error) {
+                        topicsDiv.textContent = 'Error: ' + data.error;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('topics').textContent = 'Error fetching topics.';
+                });
+        });
+    </script>
+</body>
+</html>
