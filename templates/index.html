@@ -4,46 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trending Topics</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        #topics {
-            margin-top: 20px;
-        }
-        .topic {
-            background-color: #f1f1f1;
-            padding: 10px;
-            margin: 5px;
-            border-radius: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <h1>Trending Topics</h1>
     <button id="getTopicsBtn">Get Trending Topics</button>
+    <div id="loading" class="loading">Fetching trending topics...</div>
     <div id="topics"></div>
 
     <script>
         document.getElementById('getTopicsBtn').addEventListener('click', function() {
+            const button = this;
+            const loadingDiv = document.getElementById('loading');
+            const topicsDiv = document.getElementById('topics');
+            
+            button.disabled = true;
+            loadingDiv.style.display = 'block';
+            topicsDiv.innerHTML = '';
+
             fetch('/get_trending')
                 .then(response => response.json())
                 .then(data => {
-                    const topicsDiv = document.getElementById('topics');
-                    topicsDiv.innerHTML = '';
+                    console.log('Received data:', data); // Debug log
                     if (data.topics && data.topics.length > 0) {
-                        data.topics.forEach(topic => {
+                        // Create metadata section
+                        const metadata = document.createElement('div');
+                        metadata.className = 'metadata';
+                        metadata.innerHTML = `
+                            <p><strong>Proxy IP:</strong> ${data.proxy_ip || 'Not available'}</p>
+                            <p><strong>Scrape ID:</strong> ${data.scrape_id}</p>
+                            <p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                        `;
+                        topicsDiv.appendChild(metadata);
+
+                        // Create topics section
+                        data.topics.forEach((topic, index) => {
                             const div = document.createElement('div');
                             div.className = 'topic';
-                            div.textContent = topic;
+                            div.textContent = `${index + 1}. ${topic}`;
                             topicsDiv.appendChild(div);
                         });
                     } else if (data.error) {
-                        topicsDiv.textContent = 'Error: ' + data.error;
+                        topicsDiv.innerHTML = `<div class="topic" style="color: red;">Error: ${data.error}</div>`;
                     }
                 })
                 .catch(error => {
-                    document.getElementById('topics').textContent = 'Error fetching topics.';
+                    console.error('Fetch error:', error); // Debug log
+                    topicsDiv.innerHTML = '<div class="topic" style="color: red;">Error fetching topics.</div>';
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    loadingDiv.style.display = 'none';
                 });
         });
     </script>
